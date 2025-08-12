@@ -5,103 +5,144 @@ from owlready2 import get_ontology, ThingClass, ObjectPropertyClass, DataPropert
 
 EX_IRI = "http://example.org/aec#"
 
-
-
 # pipeline/abox_writer.py
-from rdflib import Graph, Namespace, RDF, Literal, XSD, URIRef
+from rdflib import Graph, Namespace, URIRef, Literal, RDF, XSD
+import re
+from typing import Any, Dict, Iterable, List, Tuple, Optional
+
+
+
+
 
 EX = Namespace("http://example.org/aec#")
 
-def write_abox(linked_triples, out_ttl="Tests/extracted_abox.ttl"):
+def _get(d: Dict[str, Any], *names):
+    for n in names:
+        if n in d and d[n] is not None:
+            return d[n]
+    return None
+
+def _norm_label(x: Any) -> str:
+    # Keep qnames like ex:Hydrant if already present; else sanitize to Camel-ish id
+    if isinstance(x, str):
+        return x.strip()
+    return str(x)
+
+def _looks_qname(s: str) -> bool:
+    return bool(re.match(r"^[A-Za-z_][\w\-]*:[A-Za-z_][\w\-]*$", s))
+
+def _looks_iri(s: str) -> bool:
+    return s.startswith("http://") or s.startswith("https://")
+
+def _as_literal_or_uri(o: str):
+    # number?
+    try:
+        if re.fullmatch(r"-?\d+", o):
+            return Literal(int(o), datatype=XSD.integer)
+        if re.fullmatch(r"-?\d+\.\d+", o):
+            return Literal(float(o), datatype=XSD.float)
+    except Exception:
+        pass
+    # qname or iri?
+    if _looks_qname(o):
+        # allow other prefixes later; for now only ex:
+        pref, local = o.split(":", 1)
+        if pref == "ex":
+            return EX[local]
+    if _looks_iri(o):
+        return URIRef(o)
+    # default: EX IRI (object-as-resource)
+    return EX[_safe_id(o)]
+
+def _safe_id(s: str) -> str:
+    s = s.strip().replace(" ", "_")
+    s = re.sub(r"[^A-Za-z0-9_:-]", "", s)
+    if re.match(r"^\d", s):
+        s = "n_" + s
+    return s
+
+def _normalize_triple(t: Any) -> Optional[Dict[str, Any]]:
     """
-    linked_triples: list of dicts
-      {
-        "subject":{"name":"Building_X","class":"BuildingInfrastructure"},
-        "predicate":{"name":"hasRiskLevel","kind":"object"|"data"},
-        "object":{"name":"RiskLevel_BX","class":"RiskLevel"}  # if object prop
-        # or
-        "object_literal":{"value": 25.0, "datatype":"xsd:float"}  # if data prop
-      }
+    Returns dict {subject, predicate, object, ptype?, confidence?} or None if unusable.
+    Supports:
+      - dicts with various key aliases
+      - tuples/lists (s,p,o[,ptype])
     """
-    g = Graph(); g.bind("ex", EX)
+    if isinstance(t, (tuple, list)):
+        if len(t) < 3:
+            return None
+        s, p, o = t[0], t[1], t[2]
+        ptype = t[3] if len(t) > 3 else None
+        return {
+            "subject": _norm_label(s),
+            "predicate": _norm_label(p),
+            "object": _norm_label(o),
+            "ptype": ptype,
+        }
 
-    # First, type every subject/object that has a class
-    for t in linked_triples:
-        s = t["subject"]
-        if s.get("class"):
-            g.add((EX[s["name"]], RDF.type, EX[s["class"]]))
-        if t["predicate"]["kind"] == "object":
-            o = t["object"]
-            if o.get("class"):
-                g.add((EX[o["name"]], RDF.type, EX[o["class"]]))
+    if isinstance(t, dict):
+        s = _get(t, "subject", "subj", "s", "source")
+        p = _get(t, "predicate", "pred", "p", "relation", "property")
+        o = _get(t, "object", "obj", "o", "target")
+        if not (s and p and o):
+            return None
+        out = {
+            "subject": _norm_label(s),
+            "predicate": _norm_label(p),
+            "object": _norm_label(o),
+        }
+        pt = _get(t, "ptype", "type")
+        if pt: out["ptype"] = pt
+        cf = _get(t, "confidence", "score")
+        if cf: out["confidence"] = cf
+        return out
 
-    # Then add properties
-    for t in linked_triples:
-        s_iri = EX[t["subject"]["name"]]
-        p_iri = EX[t["predicate"]["name"]]
-        if t["predicate"]["kind"] == "object":
-            o_iri = EX[t["object"]["name"]]
-            g.add((s_iri, p_iri, o_iri))
-        else:
-            lit = t["object_literal"]
-            val = lit["value"]
-            if isinstance(val, float):
-                dt = XSD.float
-            elif isinstance(val, int):
-                dt = XSD.integer
-            else:
-                # allow passing explicit "datatype" string if you want
-                dt = XSD.string
-            g.add((s_iri, p_iri, Literal(val, datatype=dt)))
+    # unknown shape
+    return None
 
-    g.serialize(out_ttl, format="turtle")
-    print(f"✅ ABox written to {out_ttl}")
-    return g
-
-"""
-def write_abox(onto_path: str, out_path: str, facts, datas, tunnel_id: str):
-    onto = get_ontology(onto_path).load()
-    EX = Namespace(EX_IRI)
-
+def write_abox(triples: Iterable[Any], out_ttl: str = "Tests/auto_abox.ttl") -> Graph:
     g = Graph()
     g.bind("ex", EX)
 
-    # Minimal typing based on predicates used
-    used_nodes = set()
-    for s, p, o in facts:
-        used_nodes.add(s)
-        used_nodes.add(o)
-    for s, p, v in datas:
-        used_nodes.add(s)
+    total = 0
+    ok = 0
+    skipped: List[Any] = []
 
-    # naive typing (adjust as needed)
-    # e.g., ensure the main subject is a Tunnel, sub-nodes typed by name pattern
-    g.add((EX[tunnel_id], RDF.type, EX["Tunnel"]))
+    for raw in triples:
+        total += 1
+        t = _normalize_triple(raw)
+        if not t:
+            skipped.append({"reason": "unusable triple shape", "raw": raw})
+            continue
 
-    for n in used_nodes:
-        if n.endswith("_Spec"):
-            g.add((EX[n], RDF.type, EX["TunnelStructureSpec"]))
-        if n.endswith("_Hydrant"):
-            g.add((EX[n], RDF.type, EX["Hydrant"]))
-        if n.endswith("_Extinguisher"):
-            g.add((EX[n], RDF.type, EX["FireExtinguisher"]))
+        s = _safe_id(t["subject"])
+        p = _safe_id(t["predicate"])
+        o = t["object"]
 
-    # emit object triples
-    for s, p, o in facts:
-        g.add((EX[s], EX[p], EX[o]))
+        # subjects/predicates are resources
+        s_term = EX[s] if not _looks_iri(s) else URIRef(s)
+        p_term = EX[p] if not _looks_iri(p) else URIRef(p)
 
-    # emit data triples
-    for s, p, v in datas:
-        if isinstance(v, float):
-            lit = Literal(v, datatype=XSD.float)
-        elif isinstance(v, int):
-            lit = Literal(v, datatype=XSD.integer)
+        # object may be literal or resource
+        if isinstance(o, (int, float)):
+            o_term = Literal(o, datatype=XSD.float if isinstance(o, float) else XSD.integer)
+        elif isinstance(o, str):
+            o_term = _as_literal_or_uri(o)
         else:
-            lit = Literal(str(v))
-        g.add((EX[s], EX[p], lit))
+            o_term = Literal(str(o))
 
-    os.makedirs(os.path.dirname(out_path), exist_ok=True)
-    g.serialize(out_path, format="turtle")
-    print(f"✅ ABox saved to {out_path}")
-    return out_path
-"""
+        try:
+            g.add((s_term, p_term, o_term))
+            ok += 1
+        except Exception as e:
+            skipped.append({"reason": f"rdflib add failed: {e}", "triple": t})
+
+    g.serialize(out_ttl, format="turtle")
+    print(f"✅ ABox written: {out_ttl}  (ok={ok}, total={total}, skipped={len(skipped)})")
+
+    if skipped:
+        print("⚠️ Skipped triples (showing up to 10):")
+        for row in skipped[:10]:
+            print("  -", row)
+
+    return g

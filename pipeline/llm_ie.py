@@ -3,6 +3,13 @@ import os, json
 from typing import List, Dict, Any
 from openai import OpenAI
 
+from dotenv import load_dotenv
+
+load_dotenv()
+api_key = os.getenv("OPENAI_API_KEY")
+if not api_key:
+    raise RuntimeError("OPENAI_API_KEY missing in env")
+
 SYSTEM = """Extract factual triples from the text as JSON.
 - Use keys: subject, predicate, object, object_is_literal (bool), datatype (optional), confidence (0..1)
 - Subjects/objects should be short noun phrases.
