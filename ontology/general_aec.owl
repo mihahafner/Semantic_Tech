@@ -1,0 +1,268 @@
+<?xml version="1.0"?>
+<rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+         xmlns:xsd="http://www.w3.org/2001/XMLSchema#"
+         xmlns:rdfs="http://www.w3.org/2000/01/rdf-schema#"
+         xmlns:owl="http://www.w3.org/2002/07/owl#"
+         xml:base="http://example.org/aec.owl"
+         xmlns="http://example.org/aec.owl#"
+         xmlns:core="http://www.w3.org/2004/02/skos/core#">
+
+<owl:Ontology rdf:about="http://example.org/aec.owl"/>
+
+<owl:ObjectProperty rdf:about="#hasSpecification">
+  <rdfs:domain rdf:resource="#Infrastructure"/>
+  <rdfs:range rdf:resource="#Specification"/>
+</owl:ObjectProperty>
+
+<owl:ObjectProperty rdf:about="#inPhase">
+  <rdfs:domain rdf:resource="#Infrastructure"/>
+  <rdfs:range rdf:resource="#Phase"/>
+</owl:ObjectProperty>
+
+<owl:ObjectProperty rdf:about="#hasSafetyMeasure">
+  <rdfs:domain rdf:resource="#Infrastructure"/>
+  <rdfs:range rdf:resource="#SafetyMeasure"/>
+</owl:ObjectProperty>
+
+<owl:ObjectProperty rdf:about="#hasSafetyInfrastructure">
+  <rdfs:domain rdf:resource="#Infrastructure"/>
+  <rdfs:range rdf:resource="#SafetyInfrastructure"/>
+</owl:ObjectProperty>
+
+<owl:ObjectProperty rdf:about="#hasRisk">
+  <rdfs:domain rdf:resource="#Infrastructure"/>
+  <rdfs:range rdf:resource="#Risk"/>
+</owl:ObjectProperty>
+
+<owl:ObjectProperty rdf:about="#hasRiskLevel">
+  <rdfs:domain rdf:resource="#FireRisk"/>
+  <rdfs:range rdf:resource="#RiskLevel"/>
+</owl:ObjectProperty>
+
+<owl:ObjectProperty rdf:about="#mitigates">
+  <rdfs:domain rdf:resource="#SafetyMeasure"/>
+  <rdfs:range rdf:resource="#FireRisk"/>
+</owl:ObjectProperty>
+
+<owl:ObjectProperty rdf:about="#consistsOf">
+  <rdfs:domain rdf:resource="#SafetyInfrastructure"/>
+  <rdfs:range rdf:resource="#SafetyMeasure"/>
+</owl:ObjectProperty>
+
+<owl:DatatypeProperty rdf:about="#tunnelLength">
+  <rdfs:domain rdf:resource="#TunnelStructureSpec"/>
+  <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#decimal"/>
+</owl:DatatypeProperty>
+
+<owl:DatatypeProperty rdf:about="#numberOfCrossPassages">
+  <rdfs:domain rdf:resource="#TunnelStructureSpec"/>
+  <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#integer"/>
+</owl:DatatypeProperty>
+
+<owl:DatatypeProperty rdf:about="#pressure">
+  <rdfs:domain rdf:resource="#Hydrant"/>
+  <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#decimal"/>
+</owl:DatatypeProperty>
+
+<owl:DatatypeProperty rdf:about="#hasWeight">
+  <rdfs:domain rdf:resource="#FireExtinguisher"/>
+  <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#decimal"/>
+</owl:DatatypeProperty>
+
+<owl:DatatypeProperty rdf:about="#riskScore">
+  <rdfs:domain rdf:resource="#RiskLevel"/>
+  <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#decimal"/>
+</owl:DatatypeProperty>
+
+<owl:DatatypeProperty rdf:about="#evacPathWidth">
+  <rdfs:domain rdf:resource="#EvacuationPath"/>
+  <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#decimal"/>
+</owl:DatatypeProperty>
+
+<owl:DatatypeProperty rdf:about="#intervPathWidth">
+  <rdfs:domain rdf:resource="#InterventionPath"/>
+  <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#decimal"/>
+</owl:DatatypeProperty>
+
+<owl:AnnotationProperty rdf:about="http://www.w3.org/2004/02/skos/core#prefLabel"/>
+
+<owl:AnnotationProperty rdf:about="http://www.w3.org/2004/02/skos/core#altLabel"/>
+
+<owl:Class rdf:about="#AEC">
+  <rdfs:subClassOf rdf:resource="http://www.w3.org/2002/07/owl#Thing"/>
+</owl:Class>
+
+<owl:Class rdf:about="#State">
+  <rdfs:subClassOf rdf:resource="#AEC"/>
+</owl:Class>
+
+<owl:Class rdf:about="#Phase">
+  <rdfs:subClassOf rdf:resource="#AEC"/>
+</owl:Class>
+
+<owl:Class rdf:about="#Discipline">
+  <rdfs:subClassOf rdf:resource="#AEC"/>
+</owl:Class>
+
+<owl:Class rdf:about="#Infrastructure">
+  <rdfs:subClassOf rdf:resource="#AEC"/>
+</owl:Class>
+
+<owl:Class rdf:about="#Specification">
+  <rdfs:subClassOf rdf:resource="#AEC"/>
+</owl:Class>
+
+<owl:Class rdf:about="#Risk">
+  <rdfs:subClassOf rdf:resource="#AEC"/>
+</owl:Class>
+
+<owl:Class rdf:about="#SafetyMeasure">
+  <rdfs:subClassOf rdf:resource="#AEC"/>
+</owl:Class>
+
+<owl:Class rdf:about="#SafetyInfrastructure">
+  <rdfs:subClassOf rdf:resource="#SafetyMeasure"/>
+</owl:Class>
+
+<owl:Class rdf:about="#Normal">
+  <rdfs:subClassOf rdf:resource="#State"/>
+</owl:Class>
+
+<owl:Class rdf:about="#Emergency">
+  <rdfs:subClassOf rdf:resource="#State"/>
+</owl:Class>
+
+<owl:Class rdf:about="#Design">
+  <rdfs:subClassOf rdf:resource="#Phase"/>
+</owl:Class>
+
+<owl:Class rdf:about="#Construction">
+  <rdfs:subClassOf rdf:resource="#Phase"/>
+</owl:Class>
+
+<owl:Class rdf:about="#Operation">
+  <rdfs:subClassOf rdf:resource="#Phase"/>
+</owl:Class>
+
+<owl:Class rdf:about="#Refurbishment">
+  <rdfs:subClassOf rdf:resource="#Phase"/>
+</owl:Class>
+
+<owl:Class rdf:about="#Removal">
+  <rdfs:subClassOf rdf:resource="#Phase"/>
+</owl:Class>
+
+<owl:Class rdf:about="#Architecture">
+  <rdfs:subClassOf rdf:resource="#Discipline"/>
+</owl:Class>
+
+<owl:Class rdf:about="#Engineering">
+  <rdfs:subClassOf rdf:resource="#Discipline"/>
+</owl:Class>
+
+<owl:Class rdf:about="#ConstructionDiscipline">
+  <rdfs:subClassOf rdf:resource="#Discipline"/>
+</owl:Class>
+
+<owl:Class rdf:about="#BuildingInfrastructure">
+  <rdfs:subClassOf rdf:resource="#Infrastructure"/>
+</owl:Class>
+
+<owl:Class rdf:about="#HighriseBuilding">
+  <rdfs:subClassOf rdf:resource="#BuildingInfrastructure"/>
+  <core:prefLabel xml:lang="en">High-rise building</core:prefLabel>
+</owl:Class>
+
+<owl:Class rdf:about="#House">
+  <rdfs:subClassOf rdf:resource="#BuildingInfrastructure"/>
+</owl:Class>
+
+<owl:Class rdf:about="#TechnicalBuilding">
+  <rdfs:subClassOf rdf:resource="#BuildingInfrastructure"/>
+</owl:Class>
+
+<owl:Class rdf:about="#Factory">
+  <rdfs:subClassOf rdf:resource="#BuildingInfrastructure"/>
+</owl:Class>
+
+<owl:Class rdf:about="#TrafficInfrastructure">
+  <rdfs:subClassOf rdf:resource="#Infrastructure"/>
+</owl:Class>
+
+<owl:Class rdf:about="#Tunnel">
+  <rdfs:subClassOf rdf:resource="#TrafficInfrastructure"/>
+  <core:prefLabel xml:lang="en">Tunnel</core:prefLabel>
+</owl:Class>
+
+<owl:Class rdf:about="#Viaduct">
+  <rdfs:subClassOf rdf:resource="#TrafficInfrastructure"/>
+</owl:Class>
+
+<owl:Class rdf:about="#OpenRoad">
+  <rdfs:subClassOf rdf:resource="#TrafficInfrastructure"/>
+</owl:Class>
+
+<owl:Class rdf:about="#BuildingSpecification">
+  <rdfs:subClassOf rdf:resource="#Specification"/>
+</owl:Class>
+
+<owl:Class rdf:about="#TunnelSpecification">
+  <rdfs:subClassOf rdf:resource="#Specification"/>
+</owl:Class>
+
+<owl:Class rdf:about="#TunnelStructureSpec">
+  <rdfs:subClassOf rdf:resource="#TunnelSpecification"/>
+</owl:Class>
+
+<owl:Class rdf:about="#TunnelSafetyDoc">
+  <rdfs:subClassOf rdf:resource="#TunnelSpecification"/>
+</owl:Class>
+
+<owl:Class rdf:about="#TunnelGeologyDoc">
+  <rdfs:subClassOf rdf:resource="#TunnelSpecification"/>
+</owl:Class>
+
+<owl:Class rdf:about="#FireRisk">
+  <rdfs:subClassOf rdf:resource="#Risk"/>
+</owl:Class>
+
+<owl:Class rdf:about="#AccidentRisk">
+  <rdfs:subClassOf rdf:resource="#Risk"/>
+</owl:Class>
+
+<owl:Class rdf:about="#RiskLevel">
+  <rdfs:subClassOf rdf:resource="#Risk"/>
+</owl:Class>
+
+<owl:Class rdf:about="#FireSafetyMeasure">
+  <rdfs:subClassOf rdf:resource="#SafetyMeasure"/>
+</owl:Class>
+
+<owl:Class rdf:about="#FireDetectionSystem">
+  <rdfs:subClassOf rdf:resource="#FireSafetyMeasure"/>
+</owl:Class>
+
+<owl:Class rdf:about="#FireExtinguisher">
+  <rdfs:subClassOf rdf:resource="#FireSafetyMeasure"/>
+  <core:altLabel xml:lang="en">portable extinguisher</core:altLabel>
+</owl:Class>
+
+<owl:Class rdf:about="#Hydrant">
+  <rdfs:subClassOf rdf:resource="#FireSafetyMeasure"/>
+  <core:altLabel xml:lang="en">fire plug</core:altLabel>
+</owl:Class>
+
+<owl:Class rdf:about="#Sprinkler">
+  <rdfs:subClassOf rdf:resource="#FireSafetyMeasure"/>
+</owl:Class>
+
+<owl:Class rdf:about="#EvacuationPath">
+  <rdfs:subClassOf rdf:resource="#SafetyInfrastructure"/>
+</owl:Class>
+
+<owl:Class rdf:about="#InterventionPath">
+  <rdfs:subClassOf rdf:resource="#SafetyInfrastructure"/>
+</owl:Class>
+
+
+</rdf:RDF>
